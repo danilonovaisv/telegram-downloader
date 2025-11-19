@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = env.BOT_TOKEN
 BOT_API_DIR = env.BOT_API_DIR or ""
 DOWNLOAD_TO_DIR = env.DOWNLOAD_TO_DIR
-TELEGRAM_LOCAL = env.TELEGRAM_LOCAL
 
 # Replacing colons with a different character for Windows
 TOKEN_SUB_DIR = BOT_TOKEN.replace(":", "") if os.name == "nt" else BOT_TOKEN
@@ -182,7 +181,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Move the file to the download directory
         os.makedirs(DOWNLOAD_TO_DIR, exist_ok=True)
 
-        if TELEGRAM_LOCAL:
+        if env.TELEGRAM_LOCAL:
             current_file_path = os.path.join(
                 BOT_API_DIR, TOKEN_SUB_DIR, "documents", file_path
             )
