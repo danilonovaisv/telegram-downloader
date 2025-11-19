@@ -26,8 +26,9 @@ logger = logging.getLogger(__name__)
 
 # Environment variables
 BOT_TOKEN = env.BOT_TOKEN
-BOT_API_DIR = env.BOT_API_DIR
+BOT_API_DIR = env.BOT_API_DIR or ""
 DOWNLOAD_TO_DIR = env.DOWNLOAD_TO_DIR
+TELEGRAM_LOCAL = env.TELEGRAM_LOCAL
 
 # Replacing colons with a different character for Windows
 TOKEN_SUB_DIR = BOT_TOKEN.replace(":", "") if os.name == "nt" else BOT_TOKEN
@@ -176,30 +177,54 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         # Rename the file to the original file name
         file_path = new_file.file_path.split("/")[-1]
-        current_file_path = f"{BOT_API_DIR}{TOKEN_SUB_DIR}/documents/{file_path}"
-        move_to_path = f"{DOWNLOAD_TO_DIR}{file_name}"
+        move_to_path = os.path.join(DOWNLOAD_TO_DIR, file_name)
 
         # Move the file to the download directory
-        try:
-            os.makedirs(DOWNLOAD_TO_DIR, exist_ok=True)
-            os.rename(current_file_path, move_to_path)
-        except Exception as rename_error:
-            logger.error(f"Error RENAMING file: {rename_error}")
+        os.makedirs(DOWNLOAD_TO_DIR, exist_ok=True)
 
-            # Move the file instead of renaming
+        if TELEGRAM_LOCAL:
+            current_file_path = os.path.join(
+                BOT_API_DIR, TOKEN_SUB_DIR, "documents", file_path
+            )
+
             try:
-                await asyncio.to_thread(shutil.move, current_file_path, move_to_path)
-            except Exception as move_error:
-                logger.error(f"Error MOVING file: {move_error}")
+                os.rename(current_file_path, move_to_path)
+            except Exception as rename_error:
+                logger.error(f"Error RENAMING file: {rename_error}")
+
+                # Move the file instead of renaming
+                try:
+                    await asyncio.to_thread(
+                        shutil.move, current_file_path, move_to_path
+                    )
+                except Exception as move_error:
+                    logger.error(f"Error MOVING file: {move_error}")
+
+                    downloading_files.pop(file_id)
+                    await message.reply_text(
+                        (
+                            f"⛔ Error moving file\n"
+                            f"> 📂 *File path:*   `{file_path}`\n"
+                            f"> 📂 *Move to path:*   `{move_to_path}`\n"
+                            f"Rename error:\n```\n{rename_error}```\n"
+                            f"Move error:\n```\n{move_error}```"
+                        ),
+                        parse_mode="MarkdownV2",
+                    )
+                    return
+        else:
+            try:
+                await new_file.download_to_drive(custom_path=move_to_path)
+            except Exception as download_error:
+                logger.error(f"Error saving file: {download_error}")
 
                 downloading_files.pop(file_id)
                 await message.reply_text(
                     (
-                        f"⛔ Error moving file\n"
-                        f"> 📂 *File path:*   `{file_path}`\n"
-                        f"> 📂 *Move to path:*   `{move_to_path}`\n"
-                        f"Rename error:\n```\n{rename_error}```\n"
-                        f"Move error:\n```\n{move_error}```"
+                        f"⛔ Error saving file locally\n"
+                        f"> 📄 *File name:*   `{download_file.file_name}`\n"
+                        f"> 💾 *File size:*   `{download_file.file_size_mb}`\n"
+                        f"```\n{download_error}```"
                     ),
                     parse_mode="MarkdownV2",
                 )
@@ -215,7 +240,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         response_message = (
             f"✅ File downloaded successfully\\.\n\n"
             f"> 📄 *File name:*   `{download_file.file_name}`\n"
-            f"> 📂 *File path:*   `{file_path}`\n"
+            f"> 📂 *File path:*   `{move_to_path}`\n"
             f"> 💾 *File size:*   `{download_file.file_size_mb}`\n"
             f"> 🔻 *Retries:*   `{download_file.download_retries}`\n"
             f"> ⏱ *Download Duration:*   `{download_file.download_duration}`\n"

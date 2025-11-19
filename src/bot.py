@@ -16,15 +16,16 @@ async def bad_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 def main() -> None:
     # Create the Application and pass it your bot's token.
-    application = (
-        Application.builder()
-        .token(env.BOT_TOKEN)
-        .concurrent_updates(True)
-        .local_mode(True)
-        .base_url(f"{env.LOCAL_BOT_API_URL}/bot")
-        .base_file_url(f"{env.LOCAL_BOT_API_URL}/file/bot")
-        .build()
-    )
+    builder = Application.builder().token(env.BOT_TOKEN).concurrent_updates(True)
+
+    if env.TELEGRAM_LOCAL:
+        builder = (
+            builder.local_mode(True)
+            .base_url(f"{env.LOCAL_BOT_API_URL}/bot")
+            .base_file_url(f"{env.LOCAL_BOT_API_URL}/file/bot")
+        )
+
+    application = builder.build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("bad_command", bad_command))
