@@ -36,7 +36,7 @@ Using Docker is the easiest way to set this up. Follow these steps:
    | --- | --- |
    | `TELEGRAM_API_ID` | Your Telegram API ID. You can get this from [my.telegram.org](https://my.telegram.org/auth?to=apps). |
    | `TELEGRAM_API_HASH` | Your Telegram API Hash. You can get this from [my.telegram.org](https://my.telegram.org/auth?to=apps). |
-   | `TELEGRAM_LOCAL` | Set this to `true` to use the local Telegram Bot API server. Set it to `false` to use Telegram's hosted Bot API. |
+   | `TELEGRAM_LOCAL` | Set this to `true` to use the local Telegram Bot API server. Set it to `false` to use Telegram's hosted Bot API. If the local server is unreachable the bot now logs a warning and automatically falls back to the hosted API. |
    | `LOCAL_BOT_API_URL` | Base URL of your self-hosted Bot API (required only when `TELEGRAM_LOCAL` is `true`). |
    | `BOT_TOKEN` | The token for your Telegram bot. You can create a new bot and get the token from [BotFather](https://t.me/botfather). |
    | `USER_ID` | Your Telegram user ID. This is the user that is allowed to send files to be downloaded with the bot (usually yourself). If you don't know your ID, you can use the `/info` command on the bot. |
