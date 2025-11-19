@@ -37,7 +37,9 @@ TOKEN_SUB_DIR = BOT_TOKEN.replace(":", "") if os.name == "nt" else BOT_TOKEN
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send downloading files status to the user."""
     if not downloading_files:
-        await update.message.reply_text("No files are being downloaded at the moment.")
+        await update.message.reply_text(
+            "No files are being downloaded at the moment."
+        )
         return
 
     status_message = "*Downloading files status:*\nPage 1\n"
@@ -56,7 +58,9 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if i % 2 == 0 or i == len(downloading_files):
             # Add page number
             if i > 2:
-                status_message = f"Page {math.ceil(i / 2)}\n" + status_message
+                status_message = (
+                    f"Page {math.ceil(i / 2)}\n{status_message}"
+                )
 
             await context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -80,7 +84,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         logger.error(f"Error checking file exists: {e}")
         await update.message.reply_text(
-            f"⛔ File already exists\!\nError:```\n{e}```",
+            f"⛔ File already exists\\!\nError:```\n{e}```",
             parse_mode="MarkdownV2",
         )
         return
@@ -138,7 +142,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             check_file_exists(file_id, file_name)
         except Exception as e:
             logger.error(f"Error checking file exists: {e}")
-            await message.reply_text(f"⛔ Error checking if file exists\n```\n{e}```")
+            await message.reply_text(
+                f"⛔ Error checking if file exists\n```\n{e}```"
+            )
             return
 
         # Add file to downloading_files
@@ -222,7 +228,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                     (
                         f"⛔ Error saving file locally\n"
                         f"> 📄 *File name:*   `{download_file.file_name}`\n"
-                        f"> 💾 *File size:*   `{download_file.file_size_mb}`\n"
+                        "> 💾 *File size:*   `"
+                        f"{download_file.file_size_mb}`\n"
                         f"```\n{download_error}```"
                     ),
                     parse_mode="MarkdownV2",
@@ -240,11 +247,15 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             f"✅ File downloaded successfully\\.\n\n"
             f"> 📄 *File name:*   `{download_file.file_name}`\n"
             f"> 📂 *File path:*   `{move_to_path}`\n"
-            f"> 💾 *File size:*   `{download_file.file_size_mb}`\n"
+            "> 💾 *File size:*   `"
+            f"{download_file.file_size_mb}`\n"
             f"> 🔻 *Retries:*   `{download_file.download_retries}`\n"
-            f"> ⏱ *Download Duration:*   `{download_file.download_duration}`\n"
-            f"> ⏱ *Moving Duration:*   `{download_file.move_duration}`\n"
-            f"> ⏱ *Total Duration:*   `{download_file.total_duration}`"
+            "> ⏱ *Download Duration:*   `"
+            f"{download_file.download_duration}`\n"
+            "> ⏱ *Moving Duration:*   `"
+            f"{download_file.move_duration}`\n"
+            "> ⏱ *Total Duration:*   `"
+            f"{download_file.total_duration}`"
         )
 
         await message.reply_text(response_message, parse_mode="MarkdownV2")
